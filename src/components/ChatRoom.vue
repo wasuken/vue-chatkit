@@ -3,36 +3,36 @@
 		<div class="header">
 			ログインユーザ:{{this.loginUserId}}
 		</div>
-		<div class="room-list">
+		<div class="room-list float-left">
 			<ul class="nav flex-column">
 				<h2>ルーム一覧</h2>
 				<li class="nav-item" v-for="room in this.roomList">
-					<a class="nav-link active" href="javascript:void(0)" v-on:click="selectedRoom(room, $event)">{{ room.name }}</a>
+					<a :id="room.id" class="nav-link active" href="javascript:void(0)" v-on:click="selectedRoom(room, $event)">{{ room.name }}</a>
 				</li>
 			</ul>
 		</div>
-		<div class="login-user-list">
+		<div class="login-user-list float-left">
 			<ul class="nav flex-column">
-				<h2>room名:[{{this.curRoom == undefined ? "<未選択>" : this.curRoom.name}}]ログインユーザ一覧</h2>
+				<h2>ログインユーザ一覧</h2>
 				<li class="nav-item" v-for="user in this.curRoomLoginUserList">
 					{{user.name}}
 				</li>
 			</ul>
 		</div>
-		<div class="chat-main">
+		<div class="chat-main float-left">
 			<ul class="nav flex-column">
-				<h2>room名:[{{this.curRoom == undefined ? "<未選択>" : this.curRoom.name}}]メッセージ一覧</h2>
+				<h2>メッセージ一覧</h2>
 				<li class="nav-item" v-for="msg in this.curRoomMsgs">
 					{{msg.sender.name}} > {{msg.parts[0].payload.content}}
 					<a href="javascript:void(0)" v-on:click="deleteMessage(msg.id, $event)">[del]</a>
 				</li>
 			</ul>
-		</div>
-		<div class="chat-post">
-			<textarea cols="30" id="post-text" rows="10" v-model="curRoomPostText">
-				{{this.curRoomPostText}}
-			</textarea>
-			<input type="submit" value="送信" v-on:click="postMessage" />
+			<div class="chat-post">
+				<textarea id="post-text" rows="2" v-model="curRoomPostText">
+					{{this.curRoomPostText}}
+				</textarea>
+				<input type="submit" value="送信" v-on:click="postMessage" class="btn btn-primary" />
+			</div>
 		</div>
 	</div>
 </template>
@@ -45,12 +45,14 @@
 	 data: function(){
 		 return {
 			 message: 'chatkit-sample',
+			 sec: 0,
 			 roomList: [],
 			 curRoom: null,
 			 loginUserId: "",
 			 curRoomMsgs: [],
 			 curRoomLoginUserList: [],
 			 curRoomPostText: "",
+			 nowDelay: false,
 			 chatManager: new ChatManager({
 				 instanceLocator: process.env.VUE_APP_INSTANCE_LOCATOR,
 				 userId: process.env.VUE_APP_USER_ID,
@@ -82,7 +84,17 @@
 					 });
 				 }).then((result) => this.curRoomPostText = "");
 		 },
-		 selectedRoom: function(room,  e){
+		 selectedRoom: function(room, e){
+			 if(this.nowDelay) return;
+			 let alertStr = " alert alert-primary";
+			 console.log(document.getElementsByClassName(alertStr));
+			 for(let he of document.getElementsByClassName(alertStr)){
+				 he.className = he.className.replace(alertStr, "");
+			 }
+			 e.target.className += alertStr;
+			 this.nowDelay = !this.nowDelay
+			 setTimeout(()=> this.nowDelay = !this.nowDelay ,4000);
+
 			 this.listRoomMsgAndLoginUser(room.id);
 			 this.curRoom = room;
 		 },
@@ -100,7 +112,9 @@
 							 }
 						 }
 					 });
-					 this.curRoomLoginUserList = currentUser.users;
+					 setTimeout(() => {
+						 this.curRoomLoginUserList = currentUser.users;
+					 }, 3000);
 				 })
 		 },
 		 listRoom: function(){
@@ -113,12 +127,53 @@
 				 })
 		 }
 	 },
+	 unchi:{},
+	 watch:{
+		 sec:function(v, ov){
+			 if(v >= 300){
+				 if(this.curRoom === null){
+					 this.listRoom();
+				 }else{
+					 this.listRoomMsgAndLoginUser(this.curRoom.id);
+				 }
+				 this.sec = 0;
+			 }
+		 }
+	 },
 	 created: function(){
+		 let that = this;
+		 setInterval(() => { that.sec++ }, 1000);
 		 this.listRoom();
 	 }
  }
 </script>
 
 <style>
-
+ .room-list{
+	 width: 15%;
+	 height: 500px;
+	 border: solid 3px gray;
+ }
+ .login-user-list{
+	 width: 20%;
+	 margin-left: 10px;
+	 height: 500px;
+	 border: solid 3px gray;
+ }
+ .chat-main{
+	 width: 30%;
+	 margin-left: 10px;
+	 border: solid 3px gray;
+	 height: 500px;
+	 position: relative;
+ }
+ .chat-post{
+	 width: 100%;
+	 margin-bottom: 0px;
+	 position: absolute;
+	 bottom: 0;
+ }
+ #post-text{
+	 width: 100%;
+ }
 </style>

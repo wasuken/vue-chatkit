@@ -11,7 +11,7 @@
     "@pusher/chatkit-client": "^1.13.2",
     "@pusher/chatkit-server": "^2.2.0",
     "bootstrap-vue": "^2.1.0",
-    "core-js": "^3.3.2",
+    "core-js": "^3.4.5",
     "dotenv": "^8.2.0",
     "moment": "^2.24.0",
     "vue": "^2.6.10",
